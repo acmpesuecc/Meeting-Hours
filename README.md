@@ -1,4 +1,4 @@
-<h1>Meeting-Hours<h1>
+<h1>Meeting-Hours</h1>
 
 <h2>Project Contributors:</h2>
 <ul>
