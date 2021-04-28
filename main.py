@@ -26,6 +26,8 @@ async def on_message(message):
         spam_loop.start(message)
     if message.content.startswith('-unpoll'):
         spam_loop.cancel()
+    if message.content.startswith('-help'):
+        message.channel.send("-poll => starts recording the minutes of the meeting and searchs for links \n-unpoll => stops collection loop")
         
 @tasks.loop()
 async def spam_loop(message):
