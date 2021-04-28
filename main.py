@@ -1,6 +1,5 @@
 import discord
 import os
-import decouple
 from dotenv import load_dotenv
 from discord.utils import get
 from discord.ext import tasks
