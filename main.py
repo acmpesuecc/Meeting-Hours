@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from discord.utils import get
 from discord.ext import tasks
 from pymongo import MongoClient
-# import linkwaiter
+import re
 
 
 client = discord.Client()
@@ -22,7 +22,8 @@ global link_loop
 #helper_docs
 embed=discord.Embed(title="Helper", url="https://del.dog/cruxagrori.txt", description="This should give you a fair idea as to how to use the bot:", color=discord.Color.red())
 embed.add_field(name="-poll", value="Execute this when you want the bot to start monitoring the meeting.", inline=False)
-embed.add_filed(name="-unpoll", vaule="Execute this command when you want the bot to stop monitoring your meeting", inline=True)
+embed.add_field(name="-unpoll", value="Execute this command when you want the bot to stop monitoring your meeting", inline=True)
+#-------------------------------------------------------------------------------------------------------------------
 
 @client.event
 async def on_ready():
@@ -41,12 +42,20 @@ async def on_message(message):
         
 @tasks.loop()
 async def link_loop():
-    message = await client.wait_for("message", check=lambda message: message.author == message.author)
-    await message.channel.send(message.content)
-    # print(message)
-    # if linker.linkfn(coll,message) :
+    message = await client.wait_for("message", check=lambda message: message.author != client.user)
+    msg=str(message.content)
+    links={}
+    if re.search("(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)",msg):
+        print("Link Found!")
+        await message.channel.send("Link Found!Adding to records.")
+        links[str(message.author.name)].append(re.match("(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)",msg))
+        print(links)
         
 client.run(TOKEN)
+
+
+
+
 
 '''
 ok so basically our collection will have documents of the format {user: discord_username, links:[l1,l2,l3]}
