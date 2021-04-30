@@ -48,7 +48,12 @@ async def link_loop():
     if re.search("(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)",msg):
         print("Link Found!")
         await message.channel.send("Link Found!Adding to records.")
-        links[str(message.author.name)].append(re.match("(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)",msg))
+        print(message.author.name)
+        if str(message.author.name) in links.keys():
+            pass
+        else:
+            links[str(message.author.name)]=[]
+        links[str(message.author.name)].append(re.findall("(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)",msg))
         print(links)
         
 client.run(TOKEN)
