@@ -5,6 +5,7 @@ from discord.utils import get
 from discord.ext import tasks
 from pymongo import MongoClient
 import re
+import asyncio
 
 
 intents = discord.Intents.all()
@@ -36,7 +37,9 @@ async def on_message(message):
         return
     if message.content.startswith('-poll'):
         link_loop.start()
-        search_vc.start(message)
+        vc=await search_vc(message)
+        if not vc:
+            link_loop.cancel()
     if message.content.startswith('-unpoll'):
         link_loop.cancel()
     if message.content.startswith("-help"):
@@ -60,11 +63,11 @@ async def link_loop():
         for match in re.finditer(r"(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)",msg):
             links[str(message.author.name)].append(match.group())
         print(links)
-@tasks.loop()
+
 async def search_vc(message):
     vc = message.author.voice
     if not vc:
-        await message.channel.send("Nup!Can't find an active VoiceChat!")
+        await message.channel.send("Ummm...Join a meeting before you make me monitor it!")
         return
         
 client.run(TOKEN)
