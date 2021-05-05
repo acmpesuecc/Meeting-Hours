@@ -17,7 +17,7 @@ coll = db["polledData"]
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
-global link_loop
+
 
 
 #helper_docs
@@ -36,10 +36,13 @@ async def on_message(message):
         return
     if message.content.startswith('-poll'):
         link_loop.start()
+        search_vc.start(message)
     if message.content.startswith('-unpoll'):
         link_loop.cancel()
     if message.content.startswith("-help"):
         await message.channel.send(embed=embed)
+
+
         
 @tasks.loop()
 async def link_loop():
@@ -50,13 +53,19 @@ async def link_loop():
         print("Link Found!")
         await message.channel.send("Link Found!Adding to records.")
         print(message.author.name)
-        if str(message.author.name) in links.keys():
+        if message.author.name in links.keys():
             pass
         else:
             links[str(message.author.name)]=[]
         for match in re.finditer(r"(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)",msg):
             links[str(message.author.name)].append(match.group())
         print(links)
+@tasks.loop()
+async def search_vc(message):
+    vc = message.author.voice
+    if not vc:
+        await message.channel.send("Nup!Can't find an active VoiceChat!")
+        return
         
 client.run(TOKEN)
 
