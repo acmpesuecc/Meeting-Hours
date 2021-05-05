@@ -7,7 +7,8 @@ from pymongo import MongoClient
 import re
 
 
-client = discord.Client()
+intents = discord.Intents.all()
+client = discord.Client(intents=intents)
 mClient = MongoClient("mongodb://localhost:27017/")
 
 db = mClient["meeting-hours"]
