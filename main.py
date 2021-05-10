@@ -24,7 +24,10 @@ global link_loop
 # global links
 # links={}
 
-
+def json_dumper(jsonobject,jsonfile):
+    f=open(str(jsonfile)+".json","w")
+    json.dump(jsonobject,f)
+    f.close()
 
 
 
@@ -56,48 +59,47 @@ async def on_message(message):
     if message.author == client.user:
         return
     if message.content.startswith('-poll'):
-        if props.poll_flag == False:
+        print(props)
+        if props['poll_flag'] == "false":
             link_loop.start()
-            await message.channel.send("Strarting to monitor current meeting!")
-            props.poll_flag=True
-            f=open(str(message.guild.id)+".json")
-            json.dump(props,f)
+            await message.channel.send("Starting to monitor current meeting!")
+            props['poll_flag']="true"
+            json_dumper(props,message.guild.id)
         else:
             await message.channel.send("You have already used the poll command and the bot is monitor the ongoing meeting!")
     if message.content.startswith('-unpoll'):
-        if props.poll_flag==True:
+        if props['poll_flag']=="true":
             await message.channel.send("Unpolled!")
-            prop.poll_flag=False
-            f=open(str(message.guild.id)+".json")
-            json.dump(props,f)
+            props['poll_flag']="false"
+            json_dumper(props,message.guild.id)
             link_loop.cancel()
         else:
-            await message.channel.send("You never polled ot begin with!")
+            await message.channel.send("You never polled to begin with!")
         
     if message.content.startswith("-help"):
         await message.channel.send(embed=embed)
         
 @tasks.loop()
 async def link_loop():
+    message = await client.wait_for("message", check=lambda message: message.author != client.user)
     f=open(str(message.guild.id)+".json")
     props=json.load(f)
     f.close()
-    if props.poll_flag==True:
-        message = await client.wait_for("message", check=lambda message: message.author != client.user)
+    if props['poll_flag']=="true":
         msg=str(message.content)
         # global links
-        print(props.links.keys())
         if re.search(r'(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)' ,msg):
             print("Link Found!")
             await message.channel.send("Link Found!Adding to records.")
             print(message.author.name)
-            if str(message.author.name) in props.links.keys():
+            if str(message.author.name) in props["links"].keys():
                 pass
             else:
-                props.links[str(message.author.name)]=[]
+                props["links"][str(message.author.name)]=[]
             for match in re.finditer(r"(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)",msg):
-                props.links[str(message.author.name)].append(match.group())
-            print(links)
+                props["links"][str(message.author.name)].append(match.group())
+                json_dumper(props,message.guild)
+            print(props["links"])
         
 client.run(TOKEN)
 
