@@ -1,28 +1,32 @@
 import discord
 import os
+import os.path
 from dotenv import load_dotenv
 from discord.utils import get
 from discord.ext import tasks
 from pymongo import MongoClient
 import re
 import asyncio
-
+import json
 
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 mClient = MongoClient("mongodb://localhost:27017/")
 
 db = mClient["meeting-hours"]
-
 coll = db["polledData"]
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
 global link_loop
-global poll_flag
-poll_flag=False
-global links
-links={}
+# global poll_flag
+# poll_flag=False
+# global links
+# links={}
+
+
+
+
 
 #helper_docs
 embed=discord.Embed(title="Helper", url="https://del.dog/cruxagrori.txt", description="This should give you a fair idea as to how to use the bot:", color=discord.Color.red())
@@ -36,44 +40,64 @@ async def on_ready():
     #coll.insert_one({"test": ["https://www.google.com", "https://www.twitter.com"]}) {was for test use only!} dbstructure of saving links
 @client.event
 async def on_message(message):
-    global poll_flag
+    if os.path.exists(str(message.guild.id)+".json"):
+        pass
+    else:
+        f=open(str(message.guild.id)+".json","w+")
+        w=open("jsontemplate.json","r")
+        f.write(w.read())
+        f.close()
+        w.close()
+    # global poll_flag
+    f=open(str(message.guild.id)+".json")
+    props=json.load(f)
+    f.close()
+
     if message.author == client.user:
         return
     if message.content.startswith('-poll'):
-        if poll_flag == False:
+        if props.poll_flag == False:
             link_loop.start()
             await message.channel.send("Strarting to monitor current meeting!")
-            poll_flag=True
+            props.poll_flag=True
+            f=open(str(message.guild.id)+".json")
+            json.dump(props,f)
         else:
             await message.channel.send("You have already used the poll command and the bot is monitor the ongoing meeting!")
     if message.content.startswith('-unpoll'):
-        if poll_flag==True:
+        if props.poll_flag==True:
             await message.channel.send("Unpolled!")
+            prop.poll_flag=False
+            f=open(str(message.guild.id)+".json")
+            json.dump(props,f)
+            link_loop.cancel()
         else:
             await message.channel.send("You never polled ot begin with!")
-        link_loop.cancel()
+        
     if message.content.startswith("-help"):
         await message.channel.send(embed=embed)
         
 @tasks.loop()
 async def link_loop():
-    message = await client.wait_for("message", check=lambda message: message.author != client.user)
-    msg=str(message.content)
-    global links
-    print(links.keys())
-    if re.search(r'(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)' ,msg):
-        print("Link Found!")
-        await message.channel.send("Link Found!Adding to records.")
-        print(message.author.name)
-        empt=[]
-        if str(message.author.name) in links.keys():
-            print("yelo")
-            pass
-        else:
-            links[str(message.author.name)]=[]
-        for match in re.finditer(r"(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)",msg):
-            links[str(message.author.name)].append(match.group())
-        print(links)
+    f=open(str(message.guild.id)+".json")
+    props=json.load(f)
+    f.close()
+    if props.poll_flag==True:
+        message = await client.wait_for("message", check=lambda message: message.author != client.user)
+        msg=str(message.content)
+        # global links
+        print(props.links.keys())
+        if re.search(r'(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)' ,msg):
+            print("Link Found!")
+            await message.channel.send("Link Found!Adding to records.")
+            print(message.author.name)
+            if str(message.author.name) in props.links.keys():
+                pass
+            else:
+                props.links[str(message.author.name)]=[]
+            for match in re.finditer(r"(http://|https://|ftp://|ftps://|www.)?[\w]+\.[\w]{2,3}(\S*)",msg):
+                props.links[str(message.author.name)].append(match.group())
+            print(links)
         
 client.run(TOKEN)
 
