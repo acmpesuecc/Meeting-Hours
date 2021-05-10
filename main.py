@@ -1,5 +1,6 @@
 import discord
 import os
+import os.path
 from dotenv import load_dotenv
 from discord.utils import get
 from discord.ext import tasks
@@ -7,16 +8,21 @@ from pymongo import MongoClient
 import re
 import asyncio
 
-
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 mClient = MongoClient("mongodb://localhost:27017/")
 
 db = mClient["meeting-hours"]
-
 coll = db["polledData"]
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
+
+global link_loop
+# global poll_flag
+# poll_flag=False
+# global links
+# links={}
+
 
 
 
@@ -33,6 +39,19 @@ async def on_ready():
     #coll.insert_one({"test": ["https://www.google.com", "https://www.twitter.com"]}) {was for test use only!} dbstructure of saving links
 @client.event
 async def on_message(message):
+    if os.path.exists(str(message.guild.id)+".json"):
+        pass
+    else:
+        f=open(str(message.guild.id)+".json","w+")
+        w=open("jsontemplate.json","r")
+        f.write(w.read())
+        f.close()
+        w.close()
+    # global poll_flag
+    f=open(str(message.guild.id)+".json")
+    props=json.load(f)
+    f.close()
+
     if message.author == client.user:
         return
     if message.content.startswith('-poll'):
@@ -41,7 +60,15 @@ async def on_message(message):
         if not vc:
             link_loop.cancel()
     if message.content.startswith('-unpoll'):
-        link_loop.cancel()
+        if props.poll_flag==True:
+            await message.channel.send("Unpolled!")
+            prop.poll_flag=False
+            f=open(str(message.guild.id)+".json")
+            json.dump(props,f)
+            link_loop.cancel()
+        else:
+            await message.channel.send("You never polled ot begin with!")
+        
     if message.content.startswith("-help"):
         await message.channel.send(embed=embed)
 
