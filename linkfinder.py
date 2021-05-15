@@ -37,5 +37,5 @@ async def linkdetect(message):
                 editablelist=props["links"][str(message.author.name)]
                 editablelist.append(match.group())
                 props["links"][str(message.author.name)]=editablelist
-                json_dumper(props,message.guild)
+                json_dumper(props,message.guild.id)
             print(editablelist)
