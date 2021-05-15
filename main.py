@@ -34,7 +34,7 @@ embed.add_field(name="-unpoll", value="Execute this command when you want the bo
 
 @client.event
 async def on_ready():
-    print('I AM IN THE MATRIX [logged in]')
+    print('Logged in as ,',client.user)
 @client.event
 async def on_message(message):
     if os.path.exists(str(message.guild.id)+".json"):
@@ -53,8 +53,6 @@ async def on_message(message):
         return
     await linkfinder.linkdetect(message)
     if message.content.startswith('-poll'):
-        print(props)
-        print(message.guild.id)
         if props['poll_flag'] == "false":
             await message.channel.send("Starting to monitor current meeting!")
             props['poll_flag']="true"
